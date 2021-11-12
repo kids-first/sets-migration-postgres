@@ -53,24 +53,9 @@ object Utils {
 
   def insertSetsToPostgres (connection : String, usr: String, pwd: String)( sets: Seq[Set], table: String) = {
     val conn = DriverManager.getConnection(connection, usr, pwd)
-    val statement = conn.createStatement()
+
     try {
-
-
-      //      statement.executeUpdate(s"""CREATE TABLE IF NOT EXISTS $table (
-      //                                 |   id INT NOT NULL,
-      //                                 |   alias VARCHAR ( 255 ),
-      //                                 |   content JSON,
-      //                                 |   creation_date TIMESTAMP,
-      //                                 |   shared_publicly BOOLEAN NOT NULL,
-      //                                 |   uid VARCHAR ( 255 ),
-      //                                 |   updated_date TIMESTAMP
-      //                                 |)""".stripMargin)
-
-      val myOneSet = Seq(sets.filter(set => set.userId == "add74102-24f9-4a6c-8cc1-ede1394d70bf").head)
-      println(myOneSet)
-
-      myOneSet.foreach( set => {
+      sets.foreach( set => {
         val content: JsValue = Json.obj(
           "ids" -> Json.toJson(set.ids),
           "riffType" -> "set",
@@ -85,7 +70,6 @@ object Utils {
 
         val date: Timestamp = new Timestamp(set.createdAt.getTime)
         val prep = conn.prepareStatement(s"INSERT INTO $table (alias, content, creation_date, shared_publicly, uid, updated_date) VALUES ( ?, ?, ? , ?, ?, ?) ")
-        //              prep.setInt(1, i) //FIXME no need to set?
         prep.setString(1,  set.tag )
         prep.setObject(2, jsonObject)
         prep.setTimestamp(3, date)
@@ -95,21 +79,6 @@ object Utils {
         prep.executeUpdate
       })
 
-
-//      val res = statement.executeQuery(s"""SELECT * from $table WHERE uid = "add74102-24f9-4a6c-8cc1-ede1394d70bf" LIMIT 60 """)
-val gg = conn.prepareStatement(s"SELECT * from $table WHERE uid = ? LIMIT 60 ")
-      gg.setString(1, "add74102-24f9-4a6c-8cc1-ede1394d70bf")
-      val res = gg.executeQuery()
-      while( res.next) {
-        println(res.getString("id"))
-        println(res.getString("alias"))
-        println(res.getString("content"))
-        println(res.getString("creation_date"))
-        println(res.getString("shared_publicly"))
-        println(res.getString("uid"))
-        println(res.getString("updated_date"))
-        println("------------------")
-      }
 
       println("END")
       conn.close()
